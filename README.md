@@ -35,7 +35,9 @@ func main() {
         databaseMasterHost = flag.String("database-master-host", "localhost", "Database master host")
         databaseMasterPort = flag.Int("database-master-port", 3306, "Database master port")
     )
-    envflag.Parse()
+    if err := envflag.Parse(); err != nil {
+	    panic(err)
+	}
     fmt.Println("RESULT: ", *databaseMasterHost, ":", *databaseMasterPort)
 }
 ```
@@ -75,7 +77,9 @@ func main() {
     var (
         appEnv = flag.String("app-env", "dev", "Application env")
     )
-    envflag.Parse()
+    if err := envflag.Parse(); err != nil {
+	    panic(err)
+	}
     fmt.Println("appEnv:", appEnv)
 }
 ```

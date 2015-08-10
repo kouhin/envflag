@@ -1,6 +1,7 @@
 package envflag
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -64,11 +65,25 @@ func flagToEnv(f string) string {
 // This function also add ENVIRONMENT VARIABLE to usage.
 // It is extremely recommended to call this function in main()
 // after all flags are defined and before flags are accessed by the program.
-func Parse() {
-	if flag.Parsed() {
-		return
+// NOTICE: flag.Parse() will be called by this function.
+func Parse() error {
+	if err := ProcessFlagWithEnv(); err != nil {
+		return err
 	}
+	flag.Parse()
+	return nil
+}
 
+// ProcessFlagWithEnv parses the command-line flags from env and os.Args[1:].
+// Value from env can be overrided by os.Args[1:].
+// This function also add ENVIRONMENT VARIABLE to usage.
+// It is extremely recommended to call this function in main()
+// after all flags are defined and before flags are accessed by the program.
+// NOTICE: flag.Parse() will not be called by this function.
+func ProcessFlagWithEnv() error {
+	if flag.Parsed() {
+		return errors.New("flag has already been parsed.")
+	}
 	flagEnvMap := map[string]string{}
 	for k, v := range config.EnvFlagDict {
 		flagEnvMap[v] = k
@@ -113,10 +128,10 @@ func Parse() {
 
 		debug("Set  [", flagKey, ",", value, "] to flag")
 		if err := flag.Set(flagKey, value); err != nil {
-			log.Printf("error when set [%s,%s] into flag\n", flagKey, value)
+			return fmt.Errorf("error when set [%s,%s] into flag\n", flagKey, value)
 		}
 	}
-	flag.Parse()
+	return nil
 }
 
 func debug(v ...interface{}) {
