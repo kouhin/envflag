@@ -18,16 +18,35 @@ type Config struct {
 	EnvFlagDict map[string]string
 }
 
-// config is a default configuration of envflag package
-var config = &Config{
+// DefaultConfig is the default configuration of envflag
+var DefaultConfig = &Config{
 	DebugEnabled: false,
 	MinLength:    3,
 	EnvFlagDict:  map[string]string{},
 }
 
+// config is the configuration of envflag package
+var config = &Config{}
+
 // Setup sets up this package with customized config
 func Setup(c *Config) {
-	config = c
+	if c.DebugEnabled {
+		config.DebugEnabled = c.DebugEnabled
+	} else {
+		config.DebugEnabled = DefaultConfig.DebugEnabled
+	}
+
+	if c.MinLength != 0 {
+		config.MinLength = c.MinLength
+	} else {
+		config.MinLength = DefaultConfig.MinLength
+	}
+
+	if c.EnvFlagDict != nil {
+		config.EnvFlagDict = c.EnvFlagDict
+	} else {
+		config.EnvFlagDict = DefaultConfig.EnvFlagDict
+	}
 }
 
 // envToFlag converts THIS_FORMAT to this-format

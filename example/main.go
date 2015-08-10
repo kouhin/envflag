@@ -9,10 +9,10 @@ import (
 
 func main() {
 	var (
-		databaseMasterHost = flag.String("database-master-host", "", "Database master host")
-		databaseMasterPort = flag.Int("database-master-port", -1, "Database master port")
-		mh                 = flag.String("mh", "", "a shortcut for database-master-host")
+		databaseMasterHost = flag.String("database-master-host", "localhost", "Database master host")
+		databaseMasterPort = flag.Int("database-master-port", 3306, "Database master port")
+		mh                 = flag.String("mh", "localhost", "a shortcut for database-master-host")
 	)
 	envflag.Parse()
-	fmt.Println("RESULT: ", *databaseMasterHost, ":", *databaseMasterPort, mh)
+	fmt.Println("RESULT: ", *databaseMasterHost, ":", *databaseMasterPort, *mh)
 }
