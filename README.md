@@ -33,7 +33,7 @@ import (
 func main() {
     var (
         databaseMasterHost = flag.String("database-master-host", "localhost", "Database master host")
-        databaseMasterPort = flag.Int("database-master-username", 3306, "Database master port")
+        databaseMasterPort = flag.Int("database-master-port", 3306, "Database master port")
     )
     envflag.Parse()
     fmt.Println("RESULT: ", *databaseMasterHost, ":", *databaseMasterPort)
@@ -45,7 +45,7 @@ Run `go run main.go -h` you will get the following usage:
 ```
 Usage of XXXX
   -database-master-host="localhost": [DATABASE_MASTER_HOST] Database master host
-  -database-master-username=3306: [DATABASE_MASTER_USERNAME] Database master port
+  -database-master-port=3306: [DATABASE_MASTER_PORT] Database master port
 ```
 
 ```
