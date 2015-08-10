@@ -1,6 +1,6 @@
 # envflag
 
-[![License: APACHE2](http://img.shields.io/badge/license-APACHE2-yellow.svg)](LICENSE)
+[![License: APACHE2](https://img.shields.io/github/license/kouhin/envflag.svg)](LICENSE)
 
 A simple golang tools to set flag via environment variables inspired by [Go: Best Practices for Production Environments](http://peter.bourgon.org/go-in-production/#configuration)
 
