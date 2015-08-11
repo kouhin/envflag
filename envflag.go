@@ -97,7 +97,11 @@ func ProcessFlagWithEnv() error {
 		if !ok {
 			envKey = flagToEnv(f.Name)
 		}
-		f.Usage = fmt.Sprintf("[%s] %s", envKey, f.Usage)
+		envPrefix := fmt.Sprintf("[%s]", envKey)
+		if strings.HasPrefix(f.Usage, envPrefix) {
+			return
+		}
+		f.Usage = fmt.Sprintf("%s %s", envPrefix, f.Usage)
 	})
 
 	for _, envLine := range os.Environ() {
