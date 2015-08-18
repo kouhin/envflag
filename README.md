@@ -80,7 +80,7 @@ func main() {
     var (
         appEnv = flag.String("app-env", "dev", "Application env")
     )
-    if err := envflag.Parse(os.Args[1:]); err != nil {
+    if err := ef.Parse(os.Args[1:]); err != nil {
 	    panic(err)
 	}
     fmt.Println("appEnv:", appEnv)
