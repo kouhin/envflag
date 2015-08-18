@@ -15,9 +15,11 @@ var (
 
 // EnvFlag represents a envflag object that contains several settings.
 type EnvFlag struct {
-	flagSet     *flag.FlagSet     // the flagSet to process
-	minLength   int               // minLength defines min length of flag key, in order to support shortcut
-	envFlagDict map[string]string // envFlagDict is a user-defined env-flag map
+	flagSet           *flag.FlagSet     // the flagSet to process
+	minLength         int               // minLength defines min length of flag key, in order to support shortcut
+	envFlagDict       map[string]string // envFlagDict is a user-defined env-flag map
+	showEnvKeyInUsage bool              // show env key in usage
+	showEnvValInUsage bool              // show env value in usage as default flag value
 }
 
 // ProcessFlagWithEnv parses flag from env.
@@ -31,21 +33,23 @@ func (ef EnvFlag) ProcessFlagWithEnv() error {
 	for k, v := range ef.envFlagDict {
 		flagEnvMap[v] = k
 	}
-	// Rewrite flag.Useage
-	ef.flagSet.VisitAll(func(f *flag.Flag) {
-		if len(f.Name) < ef.minLength {
-			return
-		}
-		envKey, ok := flagEnvMap[f.Name]
-		if !ok {
-			envKey = flagToEnv(f.Name)
-		}
-		envPrefix := fmt.Sprintf("[%s]", envKey)
-		if strings.HasPrefix(f.Usage, envPrefix) {
-			return
-		}
-		f.Usage = fmt.Sprintf("%s %s", envPrefix, f.Usage)
-	})
+	// Rewrite flag.Useage and show env key in usage
+	if ef.showEnvKeyInUsage {
+		ef.flagSet.VisitAll(func(f *flag.Flag) {
+			if len(f.Name) < ef.minLength {
+				return
+			}
+			envKey, ok := flagEnvMap[f.Name]
+			if !ok {
+				envKey = flagToEnv(f.Name)
+			}
+			envPrefix := fmt.Sprintf("[%s]", envKey)
+			if strings.HasPrefix(f.Usage, envPrefix) {
+				return
+			}
+			f.Usage = fmt.Sprintf("%s %s", envPrefix, f.Usage)
+		})
+	}
 
 	for _, envLine := range os.Environ() {
 		debug("Find a new line of environment variable, ", envLine)
@@ -68,9 +72,15 @@ func (ef EnvFlag) ProcessFlagWithEnv() error {
 			flagKey = envToFlag(key)
 		}
 		debug("ENV ", key, " is converted to ", flagKey)
-		if ef.flagSet.Lookup(flagKey) == nil {
+		f := ef.flagSet.Lookup(flagKey)
+		if f == nil {
 			debug(flagKey, " is not defined in flag, skip!")
 			continue
+		}
+
+		if ef.showEnvValInUsage {
+			// use env value as default value (in usage)
+			f.DefValue = value
 		}
 
 		debug("Set  [", flagKey, ",", value, "] to flag")
@@ -114,38 +124,64 @@ func Parse() error {
 // SetMinLength sets the min length.
 // EnvFlag only parses the environment variables that is longer than min length
 // and modify usage that is longer than min length.
-func (ef *EnvFlag) SetMinLength(minLength int) {
-	ef.minLength = minLength
+func (ef *EnvFlag) SetMinLength(v int) {
+	ef.minLength = v
 }
 
 // SetMinLength sets the min length for standard envflag.
 // EnvFlag only parses the environment variables that is longer than min length
 // and modify usage that is longer than min length.
-func SetMinLength(minLength int) {
-	std.SetMinLength(minLength)
+func SetMinLength(v int) {
+	std.SetMinLength(v)
 }
 
 // SetEnvFlagDict sets a user-defined env-flag map.
-func (ef *EnvFlag) SetEnvFlagDict(envFlagDict map[string]string) {
-	ef.envFlagDict = envFlagDict
+func (ef *EnvFlag) SetEnvFlagDict(v map[string]string) {
+	ef.envFlagDict = v
 }
 
 // SetEnvFlagDict sets a user-defined env-flag map for standard envflag.
-func SetEnvFlagDict(envFlagDict map[string]string) {
-	std.SetEnvFlagDict(envFlagDict)
+func SetEnvFlagDict(v map[string]string) {
+	std.SetEnvFlagDict(v)
 }
 
-var std = NewEnvFlag(flag.CommandLine, 3, map[string]string{})
+// SetShowEnvKeyInUsage sets whether show env key in usage.
+func (ef *EnvFlag) SetShowEnvKeyInUsage(v bool) {
+	ef.showEnvKeyInUsage = v
+}
+
+// SetShowEnvKeyInUsage sets whether show env key in usage for standard envflag.
+func SetShowEnvKeyInUsage(v bool) {
+	std.showEnvKeyInUsage = v
+}
+
+// SetShowEnvValInUsage sets whether show env value in usage.
+// This is useful for confirming the environment variables.
+func (ef *EnvFlag) SetShowEnvValInUsage(v bool) {
+	ef.showEnvValInUsage = v
+}
+
+// SetShowEnvValInUsage sets whether show env value in usage for standard envflag.
+// This is useful for confirming the environment variables.
+func SetShowEnvValInUsage(v bool) {
+	std.showEnvValInUsage = v
+}
+
+var std = NewEnvFlag(flag.CommandLine, 3, map[string]string{}, true, true)
 
 // NewEnvFlag returns a new EnvFlag.
 func NewEnvFlag(
 	flagSet *flag.FlagSet,
 	minLength int,
-	envFlagDict map[string]string) *EnvFlag {
+	envFlagDict map[string]string,
+	showEnvKeyInUsage bool,
+	showEnvValInUsage bool) *EnvFlag {
 	return &EnvFlag{
-		flagSet:     flagSet,
-		minLength:   minLength,
-		envFlagDict: envFlagDict,
+		flagSet:           flagSet,
+		minLength:         minLength,
+		envFlagDict:       envFlagDict,
+		showEnvKeyInUsage: showEnvKeyInUsage,
+		showEnvValInUsage: showEnvValInUsage,
 	}
 }
 
@@ -173,5 +209,5 @@ func debug(v ...interface{}) {
 	if !debugEnabled {
 		return
 	}
-	log.Println(v)
+	log.Println(v...)
 }
